@@ -1,0 +1,16 @@
+{
+  "name": "weather",
+  "version": "0.0.0",
+  "description": "Simple weather application.",
+  "main": "server.js",
+  "author": "Cody Deckard",
+  "dependencies": {
+    "angular": "^1.5.8",
+    "body-parser": "^1.4.3",
+    "bootstrap": "^3.3.7",
+    "express": "^4.13.4",
+    "method-override": "^2.1.3",
+    "mongoose": "^4.4.12",
+    "morgan": "^1.1.1"
+  }
+}
