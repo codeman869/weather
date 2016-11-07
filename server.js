@@ -4,7 +4,7 @@ var express = require('express');
 var app = express();
 
 var mongoose = require("mongoose");
-mongoose.connect('mongodb://localhost/weather');
+mongoose.connect(process.env.mongo_uri);
 
 
 var morgan = require("morgan");
@@ -70,13 +70,13 @@ app.get('/api/:state/:city', function(req, res){
         var time = (1 * 60 * 60 * 1000);
         //time = 1;
         var expiration = new Date(currentDate.getTime() - time);
-            
-        if (current.createdAt > expiration ){
+        console.log(error);
+        if (!error && current != null && current.createdAt > expiration ){
             console.log('returning current result');
             res.json(current);
             
         } else {
-            console.log('Else condition!');
+            //console.log('Else condition!');
             http.request(options, function(res2) {
                 //console.log('sending http request');
                 res2.setEncoding('utf8');
