@@ -30,6 +30,24 @@ app.listen(process.env.PORT);
 
 console.log('Magic happening on port 8080');
 
+var schema = new mongoose.Schema(
+    {
+        image: String,
+        last_updated: String,
+        precip: String,
+        weather: String,
+        temp: String,
+        wind: String,
+        feels_like: String,
+        url: String,
+        wind_dir: String
+    }, 
+    {
+        timestamps: true
+    });
+
+var Condition = mongoose.model('Condition', schema);
+
 app.get('/api/:state/:city', function(req, res){
     
     var state = req.params.state;
@@ -42,40 +60,76 @@ app.get('/api/:state/:city', function(req, res){
         
     };
     
-    
-    http.request(options, function(res2) {
-        //console.log('STATUS' + res2.statusCode);
-       // console.log('Headers:' + JSON.stringify(res2.headers));
-        res2.setEncoding('utf8');
-        var data;
-        res2.on('data', function(chunk){
-            //console.log('Body: '+chunk);
-            data = chunk;
-        });
+    var query = Condition.find().sort({"createdAt":-1}).limit(1).exec(function(error,result){
+            
+        var current = result[0];    
         
-        res2.on('end', function(){
-           //console.log('No more data'); 
-           
-           var response = JSON.parse(data);
-           
-           //console.log(data);
-           
-           res.json(response);
-        });
+        //console.log(current);
         
-    }).end();
+        var currentDate = new Date();
+        var time = (1 * 60 * 60 * 1000);
+        //time = 1;
+        var expiration = new Date(currentDate.getTime() - time);
+            
+        if (current.createdAt > expiration ){
+            console.log('returning current result');
+            res.json(current);
+            
+        } else {
+            console.log('Else condition!');
+            http.request(options, function(res2) {
+                //console.log('sending http request');
+                res2.setEncoding('utf8');
+                var data;
+                res2.on('data', function(chunk){
+                //console.log('Body: '+chunk);
+                    data = chunk;
+                });
+        
+                res2.on('end', function(){
+                //console.log('No more data'); 
+                
+                var response = JSON.parse(data);
+           
+                var observation = response.current_observation;
+           
+                var newCondition = new Condition({
+                        image: observation.icon_url,
+                        last_updated: observation.observation_time,
+                        precip: observation.precip_today_string,
+                        weather: observation.weather,
+                        temp: observation.tempurature_string,
+                        wind: observation.wind_string,
+                        feels_like: observation.feelslike_string,
+                        url: observation.forcast_url,
+                        wind_dir: observation.wind_dir
+                });
+           
+           
+                //console.log("New Condition:" + newCondition);
+                newCondition.save();
+           
+                res.json(newCondition);
+            });
+        
+            }).end();
     
+        }
+        
+    });
     
+   
     
 });
 
-
-
-
+app.get('/favicon.ico', function(req,res){
+    
+    res.send(200);
+});
 
 app.get('*', function (req,res) {
-    console.log('Request received: '+req);
+   
     res.sendFile('./public/index.html');
-    //res.render('test');
+   
 });
 

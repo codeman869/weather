@@ -9,7 +9,7 @@ function MainController(MainService) {
     //$scope.initial = 'Hello World';
     
     MainService.getWeather().then(function(response){
-        
+        //console.log(response);
         ctrl.weather = response;
         
     }, function(error){
